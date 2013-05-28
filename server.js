@@ -92,7 +92,7 @@
         if(typeof(Fiber)=="undefined") Fiber = Npm.require('fibers');
         Fiber(function() {
 
-          if(context.params.userId && context.params.loginToken) { // TODO: rename these (and probably get from headers?)
+          if(context.params.userId && context.params.loginToken) {
             context.user = Meteor.users.findOne({
               _id:context.params.userId, 
               "services.resume.loginTokens.token":context.params.loginToken
