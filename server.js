@@ -47,6 +47,23 @@
         for (var key in context.params)
           args.push(context.params[key]);
 
+        if(request.method == "POST") {
+            context.parms = _.extend(context.params, request.body);
+        }
+        if(request.method == "GET") {
+            context.parms = _.extend(context.params, request.query);
+        }
+
+        if(this._config.use_auth) {
+          context.user = false;
+          if(context.params.userId && context.params.loginToken) {
+            context.user = Meteor.users.findOne({
+              _id:context.params.userId, 
+              "services.resume.loginTokens.token": context.params.loginToken
+            });
+          }
+        }
+
         return route[1].apply(context, args);
       }
     }
@@ -135,11 +152,13 @@
 }());
 
 // TODO: 
-// * put things in /api/ automatically
+// √ put things in /api/ automatically
 // √ "use_auth" as a setting
 // √ if so, auto-load auth.js stuff
-// * pass in this.user
+// √ pass in this.user
+// * Drop method, make it an object
 // * implement login_required
+// * Don't return next(); return an error
 
 // Get user + check login stuff:
 
