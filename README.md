@@ -1,4 +1,5 @@
-**NOTE**: Current in early early *early* beta! Use with caution. This documentation will
+**NOTE**: Current in early early *early* beta! Use with caution. The methods and
+code below will be changing frequently. In fact, this documentation will
 probably be out of date by the time you read it :)
 
 WHAT IT DOES
@@ -55,7 +56,7 @@ This will return a user id and token, which you must save (and include in future
 
     {"token":"f2KpRW7KeN9aPmjSZ","id":"fbdpsNf4oHiX79vMJ"}
 
-Then, you can call the API method, "get_user", that we wrote above:
+Then, you can call the API method, "get_user", that we wrote above. Note the `/api/` (eventually it'll be an option).
 
     curl --data "loginToken=3QzDtgZEaEAKc5JRS&userId=fbdpsNf4oHiX79vMJ" http://localhost:3000/api/get_user/
 
