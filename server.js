@@ -11,7 +11,6 @@
     _.extend(self.options, options || {});
 
     self.routes = [];
-    self.connect = (typeof(Npm) == "undefined") ? __meteor_bootstrap__.require("connect") : Npm.require("connect");
   };
 
   /* Authentication stuff */
@@ -68,15 +67,15 @@
   };
 
   /* Add a route */
-
   RESTstop.prototype.route = function(route, options, fn) {
     var self = this;
 
     var route_final = '/' + this.options.apiPath + '/' + route;
 
     if(!self.routes.length) { // Only run the first time
-      __meteor_bootstrap__.app.stack.splice(0, 0, {route: '', handle: self.connect.query()});
-      __meteor_bootstrap__.app.stack.splice(1, 0, {route: '', handle: self.connect.bodyParser()});
+      connect = (typeof(Npm) == "undefined") ? __meteor_bootstrap__.require("connect") : Npm.require("connect");
+      __meteor_bootstrap__.app.stack.splice(0, 0, {route: '', handle: connect.query()});
+      __meteor_bootstrap__.app.stack.splice(1, 0, {route: '', handle: connect.bodyParser()});
     }
 
     // TODO: Only run this once; match routes using self.routes
