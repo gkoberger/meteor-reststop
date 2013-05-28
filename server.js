@@ -99,6 +99,13 @@
             });
           }
 
+          if(options.require_login && !context.user) {
+            // TODO: only have one writeHead/end down below.
+            res.writeHead(403, {'Content-Type': 'text/json'});
+            res.end("{'error': 'You need to be logged in'}");
+            return;
+          }
+
           var output = fn.apply(context);
 
           if(output === false) {

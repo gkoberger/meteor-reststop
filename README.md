@@ -28,7 +28,7 @@ Currently not in Atmosphere (not yet stable), so you have to install it manually
 WRITING AN API
 --------------
 
-Here's a simple API method that will return the user if logged in:
+Here's some simple API methods:
 
     if (Meteor.isServer) {
       Meteor.RESTstop.route('get_user', {}, function() {
@@ -40,7 +40,20 @@ Here's a simple API method that will return the user if logged in:
           'username': this.user.username
         };
       });
+
+      Meteor.RESTstop.route('posts', {require_login: true}, function() {
+        var posts = [];
+        Posts.find({owner_id: this.user._id}).forEach(function(post) {
+
+          // Modify the post here...
+
+          posts.push(post);
+        });
+        return posts
+      });
     }
+
+Note how the second one uses `require_login`, which will return a 403 and an error message (`{error: 'You need to be logged in'}`).
 
 USING THE API YOU CREATED
 -------------------------
