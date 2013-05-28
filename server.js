@@ -1,13 +1,18 @@
 (function() {
-  var RESTstop = function() {
+  RESTstop = function() {
     this._routes = [];
-    this._config = {};
+    this._config = {
+        use_auth: false,
+        api_path: 'api',
+    };
     this._started = false;
   };
 
   // simply match this path to this function
   RESTstop.prototype.add = function(path, method, endpoint)  {
     var self = this;
+
+    if(path[0] != "/") path = "/" + path;
 
     // Start serving on first add() call
     if(!this._started){
@@ -54,7 +59,11 @@
       throw new Error("RESTstop.configure() has to be called before first call to RESTstop.add()");
     }
 
-    this._config = config;
+    this._config = _.extend(this._config, config);
+
+    if(this._config.api_path[0] != "/") {
+        this._config.api_path = "/"  +this._config.api_path;
+    }
   };
 
   RESTstop.prototype._start = function(){
@@ -71,7 +80,7 @@
     __meteor_bootstrap__.app.stack.splice(0, 0, {route: '', handle: connect.query()});
     __meteor_bootstrap__.app.stack.splice(1, 0, {route: '', handle: connect.bodyParser()});
     __meteor_bootstrap__.app.stack.splice(2, 0, {
-      route: route_final,
+      route: this._config.api_path,
       handle: function (req,res, next) {
         // need to wrap in a fiber in case they do something async
         // (e.g. in the database)
@@ -113,8 +122,13 @@
             return res.end(output);
           }
         }).run();
-      };
-  });
+      }
+    });
+
+    if(this._config.use_auth) {
+        Meteor.RESTstop.initAuth();
+    }
+  };
 
   // Make the router available
   Meteor.RESTstop = new RESTstop();
@@ -122,11 +136,10 @@
 
 // TODO: 
 // * put things in /api/ automatically
-// * "use_auth" as a setting
-// * if so, auto-load auth.js stuff
+// √ "use_auth" as a setting
+// √ if so, auto-load auth.js stuff
 // * pass in this.user
 // * implement login_required
-// * 
 
 // Get user + check login stuff:
 

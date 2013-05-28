@@ -51,17 +51,15 @@
       return {token: stampedLoginToken.token, id: user._id};
   };
 
-  /*
-  // TODO: Put this back in, but in a way that laz-loads it.
-
-  Meteor.RESTstop.route('login', {}, function() {
-    // TODO: accept a username OR email
-    // TODO: better error if can't log in
-    return loginWithPassword({
-      'user': {username: this.params.username},
-      'password': this.params.password
-    });
-  });
-  */
+  RESTstop.prototype.initAuth = function() {
+      Meteor.RESTstop.add('login', 'POST', function() {
+          // TODO: accept a username OR email
+          // TODO: better error if can't log in
+          return loginWithPassword({
+              'user': {username: this.params.username},
+              'password': this.params.password
+          });
+      });
+  };
 
 })();
