@@ -8,14 +8,13 @@ WHAT IT DOES
 RESTstop makes it easy to create RESTful APIs built on top of Meteor, for use with legacy 
 systems (or if you're just too lazy to get DDP+SRP working).
 
-It's similar to (the far superior) [Meteor Router](https://github.com/tmeasday/meteor-router)'s server 
-component, with a few major differences:
+It's a psuedo-fork of [Meteor Router](https://github.com/tmeasday/meteor-router)'s, 
+with a few major differences:
 
-  * It makes sure it's run higher in the stack so that your routes aren't ignored.
   * It doesn't come with all the front-end routing.
+  * It makes sure it's run higher in the stack so that your routes aren't ignored.
   * You can authenticate users via the API (although you could probably get this working with Router).
-
-In the (near) future, it's going to include a number of API-specific features.
+  * It has some API-specific features
 
 INSTALLATION
 ------------

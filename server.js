@@ -1,139 +1,148 @@
 (function() {
-  /* Set up RESTstop! */
-  // TODO: A way to set the options
-  var RESTstop = function(options) {
+  var RESTstop = function() {
+    this._routes = [];
+    this._config = {};
+    this._started = false;
+  };
+
+  // simply match this path to this function
+  RESTstop.prototype.add = function(path, method, endpoint)  {
     var self = this;
 
-    self.version = '0.1';
-    self.options = {
-      apiPath: 'api',
-    };
-    _.extend(self.options, options || {});
-
-    self.routes = [];
-  };
-
-  /* Authentication stuff */
-  var userQueryValidator = Match.Where(function (user) {
-    check(user, {
-      id: Match.Optional(String),
-      username: Match.Optional(String),
-      email: Match.Optional(String)
-    });
-    if (_.keys(user).length !== 1)
-      throw new Match.Error("User property must have exactly one field");
-    return true;
-  });
-
-  var selectorFromUserQuery = function (user) {
-    if (user.id)
-      return {_id: user.id};
-    else if (user.username)
-      return {username: user.username};
-    else if (user.email)
-      return {"emails.address": user.email};
-    throw new Error("shouldn't happen (validation missed something)");
-  };
-
-  var loginWithPassword = function (options) {
-    if (!options.password || !options.user)
-      return undefined; // don't handle
-
-    check(options, {user: userQueryValidator, password: String});
-
-    var selector = selectorFromUserQuery(options.user);
-    var user = Meteor.users.findOne(selector);
-    if (!user)
-      throw new Meteor.Error(403, "User not found");
-
-    if (!user.services || !user.services.password ||
-    !user.services.password.srp)
-    throw new Meteor.Error(403, "User has no password set");
-
-    // Just check the verifier output when the same identity and salt
-    // are passed. Don't bother with a full exchange.
-    var verifier = user.services.password.srp;
-    var newVerifier = Meteor._srp.generateVerifier(options.password, {
-      identity: verifier.identity, salt: verifier.salt});
-
-      if (verifier.verifier !== newVerifier.verifier)
-        throw new Meteor.Error(403, "Incorrect password");
-
-      var stampedLoginToken = Accounts._generateStampedLoginToken();
-      Meteor.users.update(
-      user._id, {$push: {'services.resume.loginTokens': stampedLoginToken}});
-
-      return {token: stampedLoginToken.token, id: user._id};
-  };
-
-  /* Add a route */
-  RESTstop.prototype.route = function(route, options, fn) {
-    var self = this;
-
-    var route_final = '/' + this.options.apiPath + '/' + route;
-
-    if(!self.routes.length) { // Only run the first time
-      connect = (typeof(Npm) == "undefined") ? __meteor_bootstrap__.require("connect") : Npm.require("connect");
-      __meteor_bootstrap__.app.stack.splice(0, 0, {route: '', handle: connect.query()});
-      __meteor_bootstrap__.app.stack.splice(1, 0, {route: '', handle: connect.bodyParser()});
+    // Start serving on first add() call
+    if(!this._started){
+      this._start();
     }
 
-    // TODO: Only run this once; match routes using self.routes
+    if (_.isObject(path) && ! _.isRegExp(path)) {
+      _.each(path, function(endpoint, p) {
+        self.add(p, endpoint);
+      });
+    } else {
+      if (! endpoint) {
+        // no http method was supplied so 2nd parameter is the endpoint
+        endpoint = method;
+        method = null;
+      }
+      if (! _.isFunction(endpoint)) {
+        endpoint = _.bind(_.identity, null, endpoint);
+      }
+      self._routes.push([new Meteor.RESTstop.Route(path, method), endpoint]);
+    }
+  };
+
+  RESTstop.prototype.match = function(request, response) {
+    for (var i = 0; i < this._routes.length; i++) {
+      var params = [], route = this._routes[i];
+
+      if (route[0].match(request.url, request.method, params)) {
+        context = {request: request, response: response, params: params};
+
+        var args = [];
+        for (var key in context.params)
+          args.push(context.params[key]);
+
+        return route[1].apply(context, args);
+      }
+    }
+
+    return false;
+  };
+
+  RESTstop.prototype.configure = function(config){
+    if(this._started){
+      throw new Error("RESTstop.configure() has to be called before first call to RESTstop.add()");
+    }
+
+    this._config = config;
+  };
+
+  RESTstop.prototype._start = function(){
+    var self = this;
+
+    if(this._started){
+      throw new Error("RESTstop has already been started");
+    }
+
+    this._started = true;
+
+    // hook up the serving
+    var connect = (typeof(Npm) == "undefined") ? __meteor_bootstrap__.require("connect") : Npm.require("connect");
+    __meteor_bootstrap__.app.stack.splice(0, 0, {route: '', handle: connect.query()});
+    __meteor_bootstrap__.app.stack.splice(1, 0, {route: '', handle: connect.bodyParser()});
     __meteor_bootstrap__.app.stack.splice(2, 0, {
       route: route_final,
       handle: function (req,res, next) {
-        var context = {
-          request: req, 
-          response: res, 
-          params: req.body,
-          user: false
-        };
-
+        // need to wrap in a fiber in case they do something async
+        // (e.g. in the database)
         if(typeof(Fiber)=="undefined") Fiber = Npm.require('fibers');
+
         Fiber(function() {
+          var output = Meteor.RESTstop.match(req, res);
 
-          if(context.params.userId && context.params.loginToken) {
-            context.user = Meteor.users.findOne({
-              _id:context.params.userId, 
-              "services.resume.loginTokens.token":context.params.loginToken
-            });
-          }
-
-          if(options.require_login && !context.user) {
-            // TODO: only have one writeHead/end down below.
-            res.writeHead(403, {'Content-Type': 'text/json'});
-            res.end("{'error': 'You need to be logged in'}");
-            return;
-          }
-
-          var output = fn.apply(context);
-
-          if(output === false) {
-            next();
+          if (output === false) {
+            return next();
           } else {
-            // TODO: allow user to specify these things
-            res.writeHead(200, {'Content-Type': 'text/json'});
-            res.end(JSON.stringify(output));
+            // parse out the various type of response we can have
+
+            // array can be
+            // [content], [status, content], [status, headers, content]
+            if (_.isArray(output)) {
+              // copy the array so we aren't actually modifying it!
+              output = output.slice(0);
+
+              if (output.length === 3) {
+                var headers = output.splice(1, 1)[0];
+                _.each(headers, function(value, key) {
+                  res.setHeader(key, value);
+                });
+              }
+
+              if (output.length === 2) {
+                res.statusCode = output.shift();
+              }
+
+              output = output[0];
+            }
+
+            if (_.isNumber(output)) {
+              res.statusCode = output;
+              output = '';
+            }
+
+            return res.end(output);
           }
-          return;
         }).run();
-      }.future ()
-    });
-  };
-
-  // Make it available globally
-  Meteor.RESTstop = new RESTstop();
-
-  // Define authentication
-  Meteor.RESTstop.route('login', {}, function() {
-    // TODO: accept a username OR email
-    // TODO: better error if can't log in
-    return loginWithPassword({
-      'user': {username: this.params.username},
-      'password': this.params.password
-    });
+      };
   });
 
-  // TODO: write /logout/
+  // Make the router available
+  Meteor.RESTstop = new RESTstop();
 }());
+
+// TODO: 
+// * put things in /api/ automatically
+// * "use_auth" as a setting
+// * if so, auto-load auth.js stuff
+// * pass in this.user
+// * implement login_required
+// * 
+
+// Get user + check login stuff:
+
+/*
+if(context.params.userId && context.params.loginToken) {
+  context.user = Meteor.users.findOne({
+    _id:context.params.userId, 
+    "services.resume.loginTokens.token":context.params.loginToken
+  });
+}
+
+if(options.require_login && !context.user) {
+  // TODO: only have one writeHead/end down below.
+  res.writeHead(403, {'Content-Type': 'text/json'});
+  res.end("{'error': 'You need to be logged in'}");
+  return;
+}
+*/
 
