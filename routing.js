@@ -18,14 +18,15 @@
    * @api private
    */
 
-  Meteor.RESTstop.Route = function(path, method, options) {
-    options = options || {};
+  Meteor.RESTstop.Route = function(path, options) {
+    this.options = options || {};
+  console.log("options", this.options);
     this.path = path;
-    this.method = method;
+    this.method = this.options.method;
     this.regexp = pathtoRegexp(path
       , this.keys = []
-      , options.sensitive
-      , options.strict);
+      , this.options.sensitive
+      , this.options.strict);
   }
 
   /**

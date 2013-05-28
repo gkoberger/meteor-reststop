@@ -12,8 +12,6 @@
   RESTstop.prototype.add = function(path, options, endpoint)  {
     var self = this;
 
-    var method = options.method;
-
     if(path[0] != "/") path = "/" + path;
 
     // Start serving on first add() call
@@ -34,7 +32,7 @@
       if (! _.isFunction(endpoint)) {
         endpoint = _.bind(_.identity, null, endpoint);
       }
-      self._routes.push([new Meteor.RESTstop.Route(path, method), endpoint]);
+      self._routes.push([new Meteor.RESTstop.Route(path, options), endpoint]);
     }
   };
 
@@ -58,13 +56,24 @@
 
         if(this._config.use_auth) {
           context.user = false;
+          
+          // Get the user object
           if(context.params.userId && context.params.loginToken) {
             context.user = Meteor.users.findOne({
               _id:context.params.userId, 
               "services.resume.loginTokens.token": context.params.loginToken
             });
           }
+
+          // Return an error if no user and login required
+          if(route[0].options.require_login && !context.user) {
+            return [403, {error: "You must be logged in to do this."}];
+          }
         }
+
+
+        console.log('andddd');
+        console.log(route[1].apply(context, args));
 
         return route[1].apply(context, args);
       }
@@ -138,6 +147,10 @@
               output = '';
             }
 
+            if(_.isObject(output)) {
+              output = JSON.stringify(output);
+            }
+
             return res.end(output);
           }
         }).run();
@@ -159,25 +172,15 @@
 // √ if so, auto-load auth.js stuff
 // √ pass in this.user
 // √ Drop method, make it an object
-// * implement login_required
+// √ implement login_required
+// √ Allow an object to be returned
 // * Don't return next(); return an error
 // * Allow multiple method types as an array
+// * Write a logout function
+// * Update README about all the above things (including the user_auth in config)
 
 // Get user + check login stuff:
 
 /*
-if(context.params.userId && context.params.loginToken) {
-  context.user = Meteor.users.findOne({
-    _id:context.params.userId, 
-    "services.resume.loginTokens.token":context.params.loginToken
-  });
-}
-
-if(options.require_login && !context.user) {
-  // TODO: only have one writeHead/end down below.
-  res.writeHead(403, {'Content-Type': 'text/json'});
-  res.end("{'error': 'You need to be logged in'}");
-  return;
-}
 */
 
