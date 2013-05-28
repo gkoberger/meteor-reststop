@@ -41,7 +41,7 @@
 
   Meteor.RESTstop.Route.prototype.match = function(path, method, params){
     var keys, qsIndex, pathname, m;
-    
+
     if (this.method && this.method.toUpperCase() !== method) return false;
 
     keys = this.keys;

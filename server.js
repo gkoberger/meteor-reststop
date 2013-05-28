@@ -9,8 +9,10 @@
   };
 
   // simply match this path to this function
-  RESTstop.prototype.add = function(path, method, endpoint)  {
+  RESTstop.prototype.add = function(path, options, endpoint)  {
     var self = this;
+
+    var method = options.method;
 
     if(path[0] != "/") path = "/" + path;
 
@@ -25,9 +27,9 @@
       });
     } else {
       if (! endpoint) {
-        // no http method was supplied so 2nd parameter is the endpoint
-        endpoint = method;
-        method = null;
+        // no options were supplied so 2nd parameter is the endpoint
+        endpoint = options;
+        options = null;
       }
       if (! _.isFunction(endpoint)) {
         endpoint = _.bind(_.identity, null, endpoint);
@@ -156,9 +158,10 @@
 // √ "use_auth" as a setting
 // √ if so, auto-load auth.js stuff
 // √ pass in this.user
-// * Drop method, make it an object
+// √ Drop method, make it an object
 // * implement login_required
 // * Don't return next(); return an error
+// * Allow multiple method types as an array
 
 // Get user + check login stuff:
 
