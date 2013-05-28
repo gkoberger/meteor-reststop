@@ -118,7 +118,8 @@
           var output = Meteor.RESTstop.match(req, res);
 
           if (output === false) {
-            return next();
+            res.statusCode = 404;
+            return res.end("{'error': 'API method not found'}");
           } else {
             // parse out the various type of response we can have
 
@@ -174,7 +175,7 @@
 // √ Drop method, make it an object
 // √ implement login_required
 // √ Allow an object to be returned
-// * Don't return next(); return an error
+// √ Don't return next(); return an error
 // * Allow multiple method types as an array
 // * Write a logout function
 // * Update README about all the above things (including the user_auth in config)
