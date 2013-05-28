@@ -104,6 +104,7 @@
           if(output === false) {
             next();
           } else {
+            // TODO: allow user to specify these things
             res.writeHead(200, {'Content-Type': 'text/json'});
             res.end(JSON.stringify(output));
           }
@@ -119,10 +120,13 @@
   // Define authentication
   Meteor.RESTstop.route('login', {}, function() {
     // TODO: accept a username OR email
+    // TODO: better error if can't log in
     return loginWithPassword({
       'user': {username: this.params.username},
       'password': this.params.password
     });
   });
+
+  // TODO: write /logout/
 }());
 
