@@ -178,5 +178,6 @@
 // √ Better error if login is unsuccessful
 // √ Also accept userID + loginToken as headers
 // * Actually delete tokens on logout 
-// * Update README about all the above things (including the user_auth in config)
+// √ Update README about all the above things (including the user_auth in config)
+// * If JSON, set the content type to JSON
 

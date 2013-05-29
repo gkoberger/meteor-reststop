@@ -5,15 +5,15 @@ probably be out of date by the time you read it :)
 WHAT IT DOES
 ------------
 
-RESTstop makes it easy to create RESTful APIs built on top of Meteor, for use with legacy 
-systems (or if you're just too lazy to get DDP+SRP working).
+RESTstop makes it easy to create RESTful APIs built on top of Meteor, for use 
+with legacy systems (or if you're just too lazy to get DDP+SRP working).
 
 It's a psuedo-fork of [Meteor Router](https://github.com/tmeasday/meteor-router)'s, 
 with a few major differences:
 
   * It doesn't come with all the front-end routing.
   * It makes sure it's run higher in the stack so that your routes aren't ignored.
-  * You can authenticate users via the API (although you could probably get this working with Router).
+  * You can authenticate users via the API, and access `this.user`.
   * It has some API-specific features
 
 INSTALLATION
@@ -30,7 +30,9 @@ WRITING AN API
 Here's some simple API methods:
 
     if (Meteor.isServer) {
-      Meteor.RESTstop.route('get_user', {}, function() {
+      Meteor.RESTstop.configure({use_auth: true});
+
+      Meteor.RESTstop.add('get_user', function() {
         if(!this.user) {
           return {'is_loggedin': false};
         }
@@ -40,7 +42,14 @@ Here's some simple API methods:
         };
       });
 
-      Meteor.RESTstop.route('posts', {require_login: true}, function() {
+      Meteor.RESTstop.add('get_num/:id?', function() {
+        if(!this.params.num) {
+          return [403, {'error': 'You need a num as a parameter!'}];
+        }
+        return this.params.num;
+      });
+
+      Meteor.RESTstop.add('posts', {require_login: true}, function() {
         var posts = [];
         Posts.find({owner_id: this.user._id}).forEach(function(post) {
 
@@ -52,29 +61,106 @@ Here's some simple API methods:
       });
     }
 
-Note how the second one uses `require_login`, which will return a 403 and an error message (`{error: 'You need to be logged in'}`).
+**Configure Options**
+
+The following `configure` options are available:
+
+  * `use_auth` (default: false): *If true, a /login and /logout method are added. You can also access `this.user`, which will be `false` if not logged in.*
+  * `api_path` (default: "api"): *The base path for your API. So if you use "api" and add a route called "get_user", the URL will look like "http://yoursite.com/api/get_user/"*
+  * `bodyParser`: *Options for bodyParser; see [node-formidable](https://github.com/felixge/node-formidable)*
+
+**Options for add()**
+
+For `Meteor.RESTstop.add`, the following options (second parameter) are available:
+
+  * `require_login` (default: false): *If true, the method will return a 403 if the user is not logged in.*
+  * `methods` (default: undefined): *A string ("POST") or array (["POST", "GET"]) of allowed HTTP methods.*
+
+**URL structure**
+
+The `path` is the first parameter of `Meteor.RESTstop.add`. You can pass it a string or regex.
+
+If you pass it `test/path`, the full path will be `http://yoursite.com/api/test/path`.
+
+If you want to pass in parameters, use a `:`. So, `post/:id` will match things like `api/post/123`. You'll be able to access the value using `this.params.id`.
+
+If you want to make a parameter optional, use `?`. So, `post/:id?` will match both `api/post` and `api/post/123`.
+
+If someone accesses an undefined route, by default a 404 and `{error: "API method not found"}`. You can overide this by using `*` as your route, which acts as a
+catch-all.
+
+**What each method gets access to**
+
+  * `this.user` - The user object. It's only available if `use_auth` is `true`. If not logged in, it will be `false`.
+  * `this.params` - A collection of all parameters. This includes parameters extracted from the URL, parameters from the query string and POST'd data.,
+  * `this.request` - The [Connect](https://github.com/senchalabs/connect) request object
+  * `this.response` - The [Connect](https://github.com/senchalabs/connect) response object
+
+**Returning results**
+
+You can return a string:
+
+    return "That's current!";
+
+Or, a JSON object:
+
+    return {json: 'object'};
+
+Or, include an error code by using an array with the error code as the first element:
+
+    return [404, {error: "There's nothing here!"}];
+
+Or, include an error code AND headers (first and second elements, respectively):
+
+    return [404, {header: "values"}, {error: "There's nothing here!"}];
+
+Or, skip using a function at all:
+
+    Meteor.RESTstop.add('/404', [404, "There's nothing here!"]);
+
+**Using Authentication:**
+
+When you log in, you'll get a userId and loginToken back. You must save these
+and include them with every request. See below for examples.
 
 USING THE API YOU CREATED
 -------------------------
 
-To log in, use the (included-with-RESTstop) "login" method. User can be an email address
-or a username. Make sure you're using HTTPS; otherwise it's insecure. (Really, you
-shouldn't be using this at all and instead should be using SRP.. but alas, the point
-of this is to make it work with legacy systems.)
+The following uses the above code.
+
+**Basic usage**
+
+We can call our `get_num` the following way. Note the `/api/` in the URL (defined with the `api_path` option above).
+
+    curl --data "num=5" http://localhost:3000/api/get_num/
+
+Or (using the optional `:id` from the URL):
+
+    curl http://localhost:3000/api/get_num/5
+
+**Authenticating**
+
+If you have `use_auth` set to `true`, you now have a `/login` method that returns
+a `userId` and `loginToken`. You must save these, and include them in subsequent requests.
+
+(Note: Make sure you're using HTTPS, otherwise this is insecure. In an ideal world,
+this should only be done with DDP and SRP.. but alas, this is an RESTful API.)
 
     curl --data "password=testpassword&user=test" http://localhost:3000/api/login/
 
-This will return a user id and token, which you must save (and include in future requests):
+The response will look something like this, which you must save (for subsequent requests):
 
-    {"token":"f2KpRW7KeN9aPmjSZ","id":"fbdpsNf4oHiX79vMJ"}
+    {"loginToken":"f2KpRW7KeN9aPmjSZ", "userId":"fbdpsNf4oHiX79vMJ"}
 
-Then, you can call the API method, "get_user", that we wrote above. Note the `/api/` (eventually it'll be an option).
+**Usage with logged in users**
 
-    curl --data "loginToken=3QzDtgZEaEAKc5JRS&userId=fbdpsNf4oHiX79vMJ" http://localhost:3000/api/get_user/
+Since this is a RESTful API (and it's meant to be used by non-browsers), you must include the `loginToken` and `userId` with each request.
+
+    curl --data "userId=fbdpsNf4oHiX79vMJ&loginToken=f2KpRW7KeN9aPmjSZ" http://localhost:3000/api/posts/
 
 THANKS TO
 ---------
-Thanks to the following projects, which I borrowed ideas and code from:
+Thanks to the following awesome projects, which I borrowed/stole ideas and code from:
 
   * [tmeasday/meteor-router](https://github.com/tmeasday/meteor-router)
   * [crazytoad/meteor-collectionapi](https://github.com/crazytoad/meteor-collectionapi)

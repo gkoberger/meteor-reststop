@@ -48,7 +48,7 @@
       Meteor.users.update(
       user._id, {$push: {'services.resume.loginTokens': stampedLoginToken}});
 
-      return {token: stampedLoginToken.token, id: user._id};
+      return {loginToken: stampedLoginToken.token, userId: user._id};
   };
 
   RESTstop.prototype.initAuth = function() {
