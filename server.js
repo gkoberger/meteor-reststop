@@ -57,11 +57,21 @@
         if(this._config.use_auth) {
           context.user = false;
 
+          var userId = context.params.userId;
+          var loginToken = context.params.loginToken;
+
+          if(request.headers['x-login-token']) {
+            loginToken = request.headers['x-login-token'];
+          }
+          if(request.headers['x-user-id']) {
+            userId = request.headers['x-user-id'];
+          }
+
           // Get the user object
-          if(context.params.userId && context.params.loginToken) {
+          if(userId && loginToken) {
             context.user = Meteor.users.findOne({
-              _id:context.params.userId, 
-              "services.resume.loginTokens.token": context.params.loginToken
+              _id: userId, 
+              "services.resume.loginTokens.token": loginToken
             });
           }
 
@@ -176,7 +186,7 @@
 // √ Write a logout function
 // √ Login should accept username OR email
 // √ Better error if login is unsuccessful
-// * Also accept userID + loginToken as headers
+// √ Also accept userID + loginToken as headers
 // * Actually delete tokens on logout 
 // √ Update README about all the above things (including the user_auth in config)
 // √ If JSON, set the content type to JSON

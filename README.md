@@ -13,7 +13,7 @@ with a few major differences:
   * It doesn't come with all the front-end routing.
   * It makes sure it's run higher in the stack so that your routes aren't ignored.
   * You can authenticate users via the API, and access `this.user`.
-  * It has some API-specific features
+  * It has a number of API-specific features
 
 INSTALLATION
 ------------
@@ -158,6 +158,10 @@ The response will look something like this, which you must save (for subsequent 
 Since this is a RESTful API (and it's meant to be used by non-browsers), you must include the `loginToken` and `userId` with each request.
 
     curl --data "userId=fbdpsNf4oHiX79vMJ&loginToken=f2KpRW7KeN9aPmjSZ" http://localhost:3000/api/posts/
+
+Or, pass it as a header. This is probably a bit cleaner:
+
+    curl -H "X-Login-Token: f2KpRW7KeN9aPmjSZ" -H "X-User-Id: fbdpsNf4oHiX79vMJ" http://localhost:3000/api/posts/
 
 THANKS TO
 ---------
