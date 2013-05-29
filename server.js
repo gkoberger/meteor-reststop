@@ -176,12 +176,7 @@
 // √ implement login_required
 // √ Allow an object to be returned
 // √ Don't return next(); return an error
-// * Allow multiple method types as an array
+// √ Allow multiple method types as an array
 // * Write a logout function
 // * Update README about all the above things (including the user_auth in config)
-
-// Get user + check login stuff:
-
-/*
-*/
 

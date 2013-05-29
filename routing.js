@@ -20,9 +20,17 @@
 
   Meteor.RESTstop.Route = function(path, options) {
     this.options = options || {};
-  console.log("options", this.options);
     this.path = path;
     this.method = this.options.method;
+
+    if(this.method && !_.isArray(this.method)) {
+        this.method = [this.method];
+    }
+    if(this.method) {
+        this.method = _.map(this.method, function(s){ return s.toUpperCase(); });
+    }
+    console.log(this.method);
+
     this.regexp = pathtoRegexp(path
       , this.keys = []
       , this.options.sensitive
@@ -43,7 +51,7 @@
   Meteor.RESTstop.Route.prototype.match = function(path, method, params){
     var keys, qsIndex, pathname, m;
 
-    if (this.method && this.method.toUpperCase() !== method) return false;
+    if(this.method && !_.contains(this.method, method)) return false;
 
     keys = this.keys;
     qsIndex = path.indexOf('?');
