@@ -73,7 +73,7 @@ The following `configure` options are available:
 For `Meteor.RESTstop.add`, the following options (second parameter) are available:
 
   * `require_login` (default: false): *If true, the method will return a 403 if the user is not logged in.*
-  * `methods` (default: undefined): *A string ("POST") or array (["POST", "GET"]) of allowed HTTP methods.*
+  * `method` (default: undefined): *A string ("POST") or array (["POST", "GET"]) of allowed HTTP methods.*
 
 **URL structure**
 
@@ -121,6 +121,20 @@ Or, skip using a function at all:
 
 When you log in, you'll get a userId and loginToken back. You must save these
 and include them with every request. See below for examples.
+
+**Accessing Server Methods**
+
+You can access server methods using `Meteor.RESTstop.apply(this, 'method_name', [..args..])`:
+
+    result = Meteor.RESTstop.apply(this, 'method_name', [arg1, arg2]);
+
+Or using `call`:
+
+    result = Meteor.RESTstop.call(this, 'method_name', arg1, arg2);
+
+If you have `use_auth` on and the user is authenticated (see above), you'll be able to access `this.userId` and `Meteor.user()` as normal. 
+
+(Note: This all *seems* to be working, however it's the hackiest part of this whole package -- be very cautious and test well.)
 
 USING THE API YOU CREATED
 -------------------------

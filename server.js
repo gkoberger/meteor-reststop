@@ -81,10 +81,13 @@
           }
         }
 
-        return route[1].apply(context, args);
+        try {
+          return route[1].apply(context, args);
+        } catch (e) {
+          return [e.error, {success: false, message: e.reason}];
+        }
       }
     }
-
     return false;
   };
 
@@ -167,6 +170,56 @@
     if(this._config.use_auth) {
       Meteor.RESTstop.initAuth();
     }
+  };
+
+  RESTstop.prototype.call = function (context, name, args) { 
+    var args = Array.prototype.slice.call(arguments, 2);
+    return this.apply(context, name, args);
+  };
+
+  RESTstop.prototype.apply = function (context, name, args) { 
+    var self = Meteor.default_server;
+
+    // Run the handler
+    var handler = self.method_handlers[name];
+    var exception;
+    if (!handler) {
+      exception = new Meteor.Error(404, "Method not found");
+    } else {
+
+      var userId = context.user ? context.user._id : null;
+      var setUserId = function() {
+        throw new Error("Can't call setUserId on a server initiated method call");
+      };
+
+      var invocation = new Meteor._MethodInvocation({
+        isSimulation: false,
+        userId: context.user._id, setUserId: setUserId,
+        sessionData: self.sessionData
+      });
+
+      try {
+        var result = Meteor._CurrentInvocation.withValue(invocation, function () {
+          return maybeAuditArgumentChecks(
+            handler, invocation, args, "internal call to '" + name + "'");
+        });
+      } catch (e) {
+        exception = e;
+      }
+    }
+
+    if (exception)
+      throw exception;
+    return result;
+  };
+
+  var maybeAuditArgumentChecks = function (f, context, args, description) {
+    args = args || [];
+    if (Meteor._LivedataServer._auditArgumentChecks) {
+      return Match._failIfArgumentsAreNotAllChecked(
+      f, context, args, description);
+    }
+    return f.apply(context, args);
   };
 
   // Make the router available
