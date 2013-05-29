@@ -53,10 +53,23 @@
 
   RESTstop.prototype.initAuth = function() {
       Meteor.RESTstop.add('login', {'method': 'POST'}, function() {
-          return loginWithPassword({
-              'user': {username: this.params.username},
-              'password': this.params.password
-          });
+          var user = {};
+          if(this.params.user.indexOf('@') == -1) {
+              user.username = this.params.user;
+          } else {
+              user.email = this.params.user;
+          }
+
+          try {
+              var login = loginWithPassword({
+                  'user': user,
+                  'password': this.params.password
+              });
+          } catch(e) {
+            return [403, {error: "Incorrect user/password"}];
+          }
+
+          return login;
       });
 
       Meteor.RESTstop.add('logout', {'method': 'POST'}, function() {

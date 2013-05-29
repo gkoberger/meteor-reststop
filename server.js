@@ -71,10 +71,6 @@
           }
         }
 
-
-        console.log('andddd');
-        console.log(route[1].apply(context, args));
-
         return route[1].apply(context, args);
       }
     }
@@ -178,9 +174,9 @@
 // √ Don't return next(); return an error
 // √ Allow multiple method types as an array
 // √ Write a logout function
-// * Login should accept username OR email
-// * Better error if login is unsuccessful
+// √ Login should accept username OR email
+// √ Better error if login is unsuccessful
+// √ Also accept userID + loginToken as headers
 // * Actually delete tokens on logout 
-// * Also accept userID + loginToken as headers
 // * Update README about all the above things (including the user_auth in config)
 
