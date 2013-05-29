@@ -2,8 +2,8 @@
   RESTstop = function() {
     this._routes = [];
     this._config = {
-        use_auth: false,
-        api_path: 'api',
+      use_auth: false,
+      api_path: 'api',
     };
     this._started = false;
   };
@@ -48,15 +48,15 @@
           args.push(context.params[key]);
 
         if(request.method == "POST") {
-            context.parms = _.extend(context.params, request.body);
+          context.parms = _.extend(context.params, request.body);
         }
         if(request.method == "GET") {
-            context.parms = _.extend(context.params, request.query);
+          context.parms = _.extend(context.params, request.query);
         }
 
         if(this._config.use_auth) {
           context.user = false;
-          
+
           // Get the user object
           if(context.params.userId && context.params.loginToken) {
             context.user = Meteor.users.findOne({
@@ -86,7 +86,7 @@
     this._config = _.extend(this._config, config);
 
     if(this._config.api_path[0] != "/") {
-        this._config.api_path = "/"  +this._config.api_path;
+      this._config.api_path = "/"  +this._config.api_path;
     }
   };
 
@@ -155,7 +155,7 @@
     });
 
     if(this._config.use_auth) {
-        Meteor.RESTstop.initAuth();
+      Meteor.RESTstop.initAuth();
     }
   };
 

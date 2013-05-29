@@ -52,31 +52,31 @@
   };
 
   RESTstop.prototype.initAuth = function() {
-      Meteor.RESTstop.add('login', {'method': 'POST'}, function() {
-          var user = {};
-          if(this.params.user.indexOf('@') == -1) {
-              user.username = this.params.user;
-          } else {
-              user.email = this.params.user;
-          }
+    Meteor.RESTstop.add('login', {'method': 'POST'}, function() {
+      var user = {};
+      if(this.params.user.indexOf('@') == -1) {
+        user.username = this.params.user;
+      } else {
+        user.email = this.params.user;
+      }
 
-          try {
-              var login = loginWithPassword({
-                  'user': user,
-                  'password': this.params.password
-              });
-          } catch(e) {
-            return [403, {error: "Incorrect user/password"}];
-          }
+      try {
+        var login = loginWithPassword({
+          'user': user,
+          'password': this.params.password
+        });
+      } catch(e) {
+        return [403, {error: "Incorrect user/password"}];
+      }
 
-          return login;
-      });
+      return login;
+    });
 
-      Meteor.RESTstop.add('logout', {'method': 'POST'}, function() {
-          // Log the user out
-          // (We should delete the token... but even Meteor doesn't actually do this)
-          return {success: "You've been logged out!"};
-      });
+    Meteor.RESTstop.add('logout', {'method': 'POST'}, function() {
+      // Log the user out
+      // (We should delete the token... but even Meteor doesn't actually do this)
+      return {success: "You've been logged out!"};
+    });
   };
 
 })();
