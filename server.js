@@ -146,6 +146,7 @@
 
             if(_.isObject(output)) {
               output = JSON.stringify(output);
+              res.setHeader("Content-Type", "text/json");
             }
 
             return res.end(output);
@@ -176,8 +177,8 @@
 // √ Write a logout function
 // √ Login should accept username OR email
 // √ Better error if login is unsuccessful
-// √ Also accept userID + loginToken as headers
+// * Also accept userID + loginToken as headers
 // * Actually delete tokens on logout 
 // √ Update README about all the above things (including the user_auth in config)
-// * If JSON, set the content type to JSON
+// √ If JSON, set the content type to JSON
 
