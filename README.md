@@ -1,6 +1,5 @@
-**NOTE**: Current in early early *early* beta! Use with caution. The methods and
-code below will be changing frequently. In fact, this documentation will
-probably be out of date by the time you read it :)
+**NOTE**: Current in beta, so use with caution. Things are likely to 
+break or change.
 
 WHAT IT DOES
 ------------

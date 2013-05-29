@@ -3,6 +3,6 @@
   "description": "Add the ability to do RESTful APIs with Meteor.",
   "homepage": "https://github.com/gkoberger/meteor-reststop",
   "author": "Gregory Koberger",
-  "version": "0.1",
+  "version": "0.4",
   "git": "https://github.com/gkoberger/meteor-reststop.git"
 }
