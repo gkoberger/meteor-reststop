@@ -66,16 +66,17 @@
           'password': this.params.password
         });
       } catch(e) {
-        return [403, {error: "Incorrect user/password"}];
+        return [e.error, {success: false, message: e.reason}];
       }
 
+      login.success = true;
       return login;
     });
 
     Meteor.RESTstop.add('logout', {'method': 'POST'}, function() {
       // Log the user out
       // (We should delete the token... but even Meteor doesn't actually do this)
-      return {success: "You've been logged out!"};
+      return {success: true, message: "You've been logged out!"};
     });
   };
 

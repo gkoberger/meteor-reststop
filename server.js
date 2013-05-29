@@ -67,7 +67,7 @@
 
           // Return an error if no user and login required
           if(route[0].options.require_login && !context.user) {
-            return [403, {error: "You must be logged in to do this."}];
+            return [403, {success: false, message: "You must be logged in to do this."}];
           }
         }
 
@@ -114,43 +114,42 @@
           var output = Meteor.RESTstop.match(req, res);
 
           if (output === false) {
-            res.statusCode = 404;
-            return res.end("{'error': 'API method not found'}");
-          } else {
-            // parse out the various type of response we can have
-
-            // array can be
-            // [content], [status, content], [status, headers, content]
-            if (_.isArray(output)) {
-              // copy the array so we aren't actually modifying it!
-              output = output.slice(0);
-
-              if (output.length === 3) {
-                var headers = output.splice(1, 1)[0];
-                _.each(headers, function(value, key) {
-                  res.setHeader(key, value);
-                });
-              }
-
-              if (output.length === 2) {
-                res.statusCode = output.shift();
-              }
-
-              output = output[0];
-            }
-
-            if (_.isNumber(output)) {
-              res.statusCode = output;
-              output = '';
-            }
-
-            if(_.isObject(output)) {
-              output = JSON.stringify(output);
-              res.setHeader("Content-Type", "text/json");
-            }
-
-            return res.end(output);
+            output = [404, {success: false, message:'API method not found'}];
           }
+          
+          // parse out the various type of response we can have
+
+          // array can be
+          // [content], [status, content], [status, headers, content]
+          if (_.isArray(output)) {
+            // copy the array so we aren't actually modifying it!
+            output = output.slice(0);
+
+            if (output.length === 3) {
+              var headers = output.splice(1, 1)[0];
+              _.each(headers, function(value, key) {
+                res.setHeader(key, value);
+              });
+            }
+
+            if (output.length === 2) {
+              res.statusCode = output.shift();
+            }
+
+            output = output[0];
+          }
+
+          if (_.isNumber(output)) {
+            res.statusCode = output;
+            output = '';
+          }
+
+          if(_.isObject(output)) {
+            output = JSON.stringify(output);
+            res.setHeader("Content-Type", "text/json");
+          }
+
+          return res.end(output);
         }).run();
       }
     });

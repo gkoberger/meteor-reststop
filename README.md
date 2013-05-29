@@ -44,7 +44,7 @@ Here's some simple API methods:
 
       Meteor.RESTstop.add('get_num/:id?', function() {
         if(!this.params.num) {
-          return [403, {'error': 'You need a num as a parameter!'}];
+          return [403, {success: false, message: 'You need a num as a parameter!'}];
         }
         return this.params.num;
       });
@@ -86,7 +86,7 @@ If you want to pass in parameters, use a `:`. So, `post/:id` will match things l
 
 If you want to make a parameter optional, use `?`. So, `post/:id?` will match both `api/post` and `api/post/123`.
 
-If someone accesses an undefined route, by default a 404 and `{error: "API method not found"}`. You can overide this by using `*` as your route, which acts as a
+If someone accesses an undefined route, by default a 404 and `{success: false, message: "API method not found"}`. You can overide this by using `*` as your route, which acts as a
 catch-all.
 
 **What each method gets access to**
@@ -108,11 +108,11 @@ Or, a JSON object:
 
 Or, include an error code by using an array with the error code as the first element:
 
-    return [404, {error: "There's nothing here!"}];
+    return [404, {success: false, message: "There's nothing here!"}];
 
 Or, include an error code AND headers (first and second elements, respectively):
 
-    return [404, {header: "values"}, {error: "There's nothing here!"}];
+    return [404, {"Content-Type": "text/plain"},  {success: false, message: "There's nothing here!"}];
 
 Or, skip using a function at all:
 
@@ -127,6 +127,8 @@ USING THE API YOU CREATED
 -------------------------
 
 The following uses the above code.
+
+Any results specified by RESTstop (mostly errors) will include a JSON object with a boolean named `success` and a string called `message`.
 
 **Basic usage**
 
@@ -150,7 +152,7 @@ this should only be done with DDP and SRP.. but alas, this is an RESTful API.)
 
 The response will look something like this, which you must save (for subsequent requests):
 
-    {"loginToken":"f2KpRW7KeN9aPmjSZ", "userId":"fbdpsNf4oHiX79vMJ"}
+    {success: true, loginToken: "f2KpRW7KeN9aPmjSZ", userId: fbdpsNf4oHiX79vMJ}
 
 **Usage with logged in users**
 
