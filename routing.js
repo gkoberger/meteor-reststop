@@ -4,16 +4,15 @@
   // Copyright (c) 2012 TJ Holowaychuk &lt;tj@vision-media.ca&gt;
   //
   /**
-   * Initialize `Route` with the given HTTP `path`, HTTP `method`,
-   * and an array of `callbacks` and `options`.
+   * Initialize `Route` with the given HTTP `path`, and an array of `options`.
    *
    * Options:
    *
+   *   - `methods`      the allowed methods. string ("POST") or array (["POST", "GET"]).
    *   - `sensitive`    enable case-sensitive routes
    *   - `strict`       enable strict matching for trailing slashes
    *
    * @param {String} path
-   * @param {String} method
    * @param {Object} options.
    * @api private
    */
@@ -29,7 +28,6 @@
     if(this.method) {
         this.method = _.map(this.method, function(s){ return s.toUpperCase(); });
     }
-    console.log(this.method);
 
     this.regexp = pathtoRegexp(path
       , this.keys = []

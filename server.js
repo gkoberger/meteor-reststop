@@ -177,6 +177,10 @@
 // √ Allow an object to be returned
 // √ Don't return next(); return an error
 // √ Allow multiple method types as an array
-// * Write a logout function
+// √ Write a logout function
+// * Login should accept username OR email
+// * Better error if login is unsuccessful
+// * Actually delete tokens on logout 
+// * Also accept userID + loginToken as headers
 // * Update README about all the above things (including the user_auth in config)
 

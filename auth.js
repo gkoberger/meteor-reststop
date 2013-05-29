@@ -52,13 +52,17 @@
   };
 
   RESTstop.prototype.initAuth = function() {
-      Meteor.RESTstop.add('login', 'POST', function() {
-          // TODO: accept a username OR email
-          // TODO: better error if can't log in
+      Meteor.RESTstop.add('login', {'method': 'POST'}, function() {
           return loginWithPassword({
               'user': {username: this.params.username},
               'password': this.params.password
           });
+      });
+
+      Meteor.RESTstop.add('logout', {'method': 'POST'}, function() {
+          // Log the user out
+          // (We should delete the token... but even Meteor doesn't actually do this)
+          return {success: "You've been logged out!"};
       });
   };
 
