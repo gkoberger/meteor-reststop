@@ -132,6 +132,11 @@ Or using `call`:
 
     result = Meteor.RESTstop.call(this, 'method_name', arg1, arg2);
 
+You can also get published data in a similar manner:
+
+    result = Meteor.RESTstop.getPublished(this, 'method_name', [arg1, arg2]);
+    result.fetch() // You'll need to manually fetch the results
+
 If you have `use_auth` on and the user is authenticated (see above), you'll be able to access `this.userId` and `Meteor.user()` as normal. 
 
 (Note: This all *seems* to be working, however it's the hackiest part of this whole package -- be very cautious and test well.)

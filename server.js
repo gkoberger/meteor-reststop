@@ -174,14 +174,22 @@
 
   RESTstop.prototype.call = function (context, name, args) { 
     var args = Array.prototype.slice.call(arguments, 2);
-    return this.apply(context, name, args);
+    return this._apply(context, name, args, 'method_handlers');
   };
 
   RESTstop.prototype.apply = function (context, name, args) { 
+    return this._apply(context, name, args, 'method_handlers');
+  };
+
+  RESTstop.prototype.getPublished = function (context, name, args) { 
+    return this._apply(context, name, args, 'publish_handlers');
+  };
+
+  RESTstop.prototype._apply = function (context, name, args, handler_name) { 
     var self = Meteor.default_server;
 
     // Run the handler
-    var handler = self.method_handlers[name];
+    var handler = self[handler_name][name];
     var exception;
     if (!handler) {
       exception = new Meteor.Error(404, "Method not found");
