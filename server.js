@@ -84,7 +84,7 @@
         try {
           return route[1].apply(context, args);
         } catch (e) {
-          return [e.error, {success: false, message: e.reason}];
+          return [e.error || 404, {success: false, message: e.reason || e.message}];
         }
       }
     }
