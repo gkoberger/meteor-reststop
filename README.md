@@ -18,7 +18,12 @@ with a few major differences:
 INSTALLATION
 ------------
 
-Currently not in Atmosphere (not yet stable), so you have to install it manually:
+Install from Meteorite:
+
+    [ install meteorite ]
+    mrt add reststop
+
+Or, install it manually:
 
     cd your-meteor-project
     git submodule add git@github.com:gkoberger/meteor-reststop.git packages/reststop
