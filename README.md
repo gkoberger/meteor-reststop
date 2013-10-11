@@ -1,3 +1,15 @@
+DEPRECATION NOTICE
+------------------
+Using meteor 0.6.5 or greater? Check out [RestStop 2](https://github.com/BeDifferential/reststop2).
+
+.
+.
+.
+.
+.
+.
+
+
 **NOTE**: Current in beta, so use with caution. Things are likely to 
 break or change.
 
